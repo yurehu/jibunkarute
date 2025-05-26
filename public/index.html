@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>じぶんカルテ</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>じぶんカルテ - 週間チェック</h1>
+  <h2>グラフで見る</h2>
+<canvas id="chart" width="600" height="300"></canvas>
+
+
+  <form id="check-form">
+    <label>今週の気分（1〜5）:<br>
+      <input type="number" name="mood" min="1" max="5" required>
+    </label><br><br>
+
+    <label>体調（1〜5）:<br>
+      <input type="number" name="condition" min="1" max="5" required>
+    </label><br><br>
+
+    <label>勉強時間（時間）:<br>
+      <input type="number" name="studyHours" min="0" required>
+    </label><br><br>
+
+    <button type="submit">記録する</button>
+  </form>
+
+  <h2>これまでの記録</h2>
+  <ul id="record-list"></ul>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const form = document.getElementById('check-form');
+  const recordList = document.getElementById('record-list');
+  const ctx = document.getElementById('chart').getContext('2d');
+
+  // ✅ ローカルストレージから読み込み
+  let saved = localStorage.getItem('records');
+  let records = saved ? JSON.parse(saved) : [];
+
+  // ✅ Chart.js 初期化
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: '気分',
+          data: [],
+          borderColor: 'orange',
+          fill: false
+        },
+        {
+          label: '体調',
+          data: [],
+          borderColor: 'green',
+          fill: false
+        },
+        {
+          label: '勉強時間',
+          data: [],
+          borderColor: 'blue',
+          fill: false
+        }
+      ]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // ✅ 表示更新（リストとグラフを再描画）
+  function updateDisplay() {
+    // リストとグラフを初期化
+    recordList.innerHTML = '';
+    chart.data.labels = [];
+    chart.data.datasets.forEach(dataset => dataset.data = []);
+
+    // 最新データで描画
+    records.forEach((record) => {
+      const li = document.createElement('li');
+      li.textContent = `日付: ${record.date}｜気分: ${record.mood}｜体調: ${record.condition}｜勉強: ${record.studyHours}時間`;
+      recordList.appendChild(li);
+
+      chart.data.labels.push(record.date);
+      chart.data.datasets[0].data.push(record.mood);
+      chart.data.datasets[1].data.push(record.condition);
+      chart.data.datasets[2].data.push(record.studyHours);
+    });
+    chart.update();
+  }
+
+  // ✅ 最初の表示
+  updateDisplay();
+
+  // ✅ フォーム送信時
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const mood = Number(formData.get('mood'));
+    const condition = Number(formData.get('condition'));
+    const studyHours = Number(formData.get('studyHours'));
+    const date = new Date().toLocaleDateString();
+
+    const newRecord = {
+      mood,
+      condition,
+      studyHours,
+      date
+    };
+
+    // ✅ 同じ日付の記録があれば上書き、それ以外は追加
+    const index = records.findIndex(r => r.date === date);
+    if (index !== -1) {
+      records[index] = newRecord;
+    } else {
+      records.push(newRecord);
+    }
+
+    // ✅ 保存して表示を更新
+    localStorage.setItem('records', JSON.stringify(records));
+    updateDisplay();
+
+    alert("記録しました！");
+    form.reset();
+  });
+</script>
+
+
+
+</body>
+</html>
