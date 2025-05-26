@@ -1,19 +1,19 @@
-// index.js（または server.js）
-
 const express = require('express');
-const app = express();
 const path = require('path');
+const app = express();
 
-// 静的ファイルを公開（HTMLやJSなど）
+// public フォルダを静的ファイルとして使う
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ルートにアクセスしたら index.html を返す
+// ルートにアクセスが来たら index.html を返す
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Render用ポート設定
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`サーバーが起動しました: http://localhost:${PORT}`);
+  console.log(`サーバー起動中: http://localhost:${PORT}`);
 });
+
 
